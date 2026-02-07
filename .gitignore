@@ -1,0 +1,8 @@
+**/target/
+**/__pycache__/
+*.wasm
+*.lock
+*.exe
+.env
+.secrets
+PRIV_KEY
