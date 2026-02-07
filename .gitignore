@@ -6,3 +6,4 @@
 .env
 .secrets
 PRIV_KEY
+.env
