@@ -1,3 +1,9 @@
+![Nexus Protocol CI](https://github.com/YOUR_GITHUB_USERNAME/Nexus_Protocol/actions/workflows/ci.yml/badge.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Arbitrum](https://img.shields.io/badge/Arbitrum-Sepolia-blue.svg)
+![Rust](https://img.shields.io/badge/rust-1.93.0-orange.svg)
+![ESP32](https://img.shields.io/badge/ESP32-S3-green.svg)
+
 # Nexus Protocol/Anchor - Orthonode Hardware Root (OHR)
 
 Hardware-to-Blockchain Identity Binding for Verifiable Off-Chain Computation
