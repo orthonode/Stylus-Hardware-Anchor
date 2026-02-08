@@ -1,4 +1,4 @@
-# Nexus Protocol - Orthonode Hardware Root (OHR)
+# Nexus Protocol/Anchor - Orthonode Hardware Root (OHR)
 
 Hardware-to-Blockchain Identity Binding for Verifiable Off-Chain Computation
 
