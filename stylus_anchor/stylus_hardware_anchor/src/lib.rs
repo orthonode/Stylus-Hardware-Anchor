@@ -19,7 +19,7 @@ pub struct StylusHardwareAnchor {
 }
 
 #[public]
-impl anchorAnchor {
+impl StylusHardwareAnchor {
     pub fn verify_receipt(
         &mut self,
         hw_id: FixedBytes<32>,
