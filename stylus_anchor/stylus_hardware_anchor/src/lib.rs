@@ -12,7 +12,7 @@ type U64 = Uint<64, 1>;
 
 #[storage]
 #[entrypoint]
-pub struct anchorAnchor {
+pub struct StylusHardwareAnchor {
     authorized_nodes: StorageMap<FixedBytes<32>, StorageBool>,
     counters: StorageMap<FixedBytes<32>, StorageU64>,
     approved_firmware: StorageMap<FixedBytes<32>, StorageBool>,
