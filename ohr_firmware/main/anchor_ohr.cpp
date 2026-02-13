@@ -12,7 +12,7 @@
  * SECURITY WARNINGS:
  * ⚠️ ESP32 (original) support is for DEVELOPMENT ONLY
  *    Production OHR nodes require ESP32-S2/S3 with eFuse-backed unique ID
- * ⚠️ Software Keccak placeholder - hardware implementation required for production
+ * ⚠️ Software Keccak - hardware acceleration preferred for production
  * ⚠️ NVS encryption MUST be enabled in production to prevent physical rollback attacks
  * ⚠️ Secure Boot V2 key extraction requires production implementation
  */
@@ -163,7 +163,7 @@ static esp_err_t anchor_get_security_state_fingerprint(uint8_t digest[32]) {
  * Hardware Identity Derivation (FROZEN PROTOCOL)
  * 
  * hardware_identity = keccak256(
- *     anchor_HWI_DOMAIN     || // 12 bytes - Domain separation
+ *     anchor_HWI_DOMAIN     || // 13 bytes - Domain separation
  *     chip_unique_id       || // 16 bytes - Device uniqueness
  *     secure_boot_enabled  || //  1 byte  - Security state
  *     flash_encrypt_enabled|| //  1 byte  - Security state
@@ -252,7 +252,6 @@ static esp_err_t anchor_get_firmware_hash(uint8_t firmware_hash[32]) {
     const esp_app_desc_t *app_desc = esp_app_get_description();
     
     // Normalize ESP-IDF's SHA256 to Keccak-256
-    // ⚠️ This uses placeholder Keccak - production needs true Ethereum Keccak
     anchor_keccak256(app_desc->app_elf_sha256, 32, firmware_hash);
     
     ESP_LOGI(TAG, "Firmware version: %s", app_desc->version);
@@ -337,7 +336,7 @@ static esp_err_t anchor_increment_counter(uint64_t *new_counter) {
  * Receipt format (FROZEN PROTOCOL):
  * 
  * receipt_digest = keccak256(
- *     anchor_RCT_DOMAIN     || // 12 bytes - Domain separation (different from HWI)
+ *     anchor_RCT_DOMAIN     || // 13 bytes - Domain separation (different from HWI)
  *     hardware_identity    || // 32 bytes - Static device ID
  *     firmware_hash        || // 32 bytes - Firmware version binding
  *     execution_hash       || // 32 bytes - Computation result
@@ -407,7 +406,6 @@ static esp_err_t anchor_generate_receipt(
     r_off += 8;
 
     // 5. Hash to produce receipt digest
-    // ⚠️ Uses placeholder Keccak - production needs Ethereum-compatible implementation
     anchor_keccak256(rct_material, r_off, digest);
     
     *cnt = counter_val;

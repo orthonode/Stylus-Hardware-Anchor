@@ -45,7 +45,7 @@ impl StylusHardwareAnchor {
 
         let counter_bytes = counter.to_be_bytes();
 
-        let mut material = Vec::with_capacity(116);
+        let mut material = Vec::with_capacity(117);
         material.extend_from_slice(b"anchor_RCT_V1");
         material.extend_from_slice(hw_id.as_slice());
         material.extend_from_slice(fw_hash.as_slice());
