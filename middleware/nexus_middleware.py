@@ -93,7 +93,7 @@ class anchorMiddleware:
         self.last_counters = {}
 
         # INVARIANT CHECK: Domain Separation
-        # Expected ESP32 Tag: "anchor_OHR_V1" (12 bytes, ASCII)
+        # Expected ESP32 Tag: "anchor_OHR_V1" (13 bytes, ASCII)
         self.domain_tag = "anchor_OHR_V1"
 
         print(f"✅ anchor Middleware Live | Chain ID: {CHAIN_ID}")

@@ -30,10 +30,9 @@
 #include "esp_system.h"
 #include "esp_mac.h"
 
-// ⚠️ CRITICAL: This is a PLACEHOLDER implementation
-// Production MUST replace with true Ethereum Keccak-256 (tiny-keccak / XKCP / eth-keccak)
-// mbedTLS SHA3 ≠ Ethereum Keccak (different padding: 0x06 vs 0x01)
-#include "mbedtls/sha3.h"
+// Using Ethereum-compatible Keccak-256 (NOT SHA3-256)
+// Keccak uses 0x01 padding, SHA3 uses 0x06 padding - they produce DIFFERENT hashes!
+#include "sha3.h"
 
 static const char *TAG = "anchor_OHR";
 
@@ -43,45 +42,25 @@ static const char *TAG = "anchor_OHR";
 // Separate domain tags to avoid cross-hash ambiguity
 #define anchor_HWI_DOMAIN "anchor_OHR_V1"  // Hardware Identity
 #define anchor_RCT_DOMAIN "anchor_RCT_V1"  // Receipt Digest
-#define anchor_HWI_DOMAIN_LEN 12
-#define anchor_RCT_DOMAIN_LEN 12
+#define anchor_HWI_DOMAIN_LEN 13
+#define anchor_RCT_DOMAIN_LEN 13
 
 // ============================================================================
-// KECCAK-256 WRAPPER (⚠️ SOFTWARE PLACEHOLDER - NOT PRODUCTION READY)
+// KECCAK-256 WRAPPER (Ethereum-compatible)
 // ============================================================================
 /**
- * ⚠️ SECURITY WARNING: Software-SHA3 placeholder
+ * Ethereum-compatible Keccak-256 implementation
  * 
- * This currently uses mbedTLS SHA3-256, which is NOT Ethereum Keccak-256.
+ * This uses the correct Keccak padding (0x01) that matches:
+ * - Solidity's keccak256()
+ * - Stylus contracts using alloy_primitives::keccak256
+ * - Python's eth_hash.keccak
  * 
- * Difference:
- * - Ethereum Keccak-256: Pre-NIST padding (0x01)
- * - SHA3-256: NIST finalized padding (0x06)
- * 
- * CONSEQUENCE: Digest mismatch with Solidity keccak256() and Stylus contracts
- * 
- * PRODUCTION REQUIREMENT:
- * Replace with true Ethereum Keccak implementation:
- * - tiny-keccak: https://github.com/coruus/keccak-tiny
- * - XKCP: https://github.com/XKCP/XKCP
- * - eth-keccak: Ethereum-specific implementations
- * 
- * For Phase-2 middleware testing, use reference Keccak and mark this
- * firmware as "placeholder pending hardware Keccak implementation."
+ * NOTE: This is NOT the same as SHA3-256 (which uses 0x06 padding)
  */
-static void anchor_keccak256_placeholder(const uint8_t *input, size_t len, uint8_t *output) {
-    mbedtls_sha3_context ctx;
-    mbedtls_sha3_init(&ctx);
-    mbedtls_sha3_starts(&ctx, MBEDTLS_SHA3_256);
-    mbedtls_sha3_update(&ctx, input, len);
-    mbedtls_sha3_finish(&ctx, output, 32);
-    mbedtls_sha3_free(&ctx);
-    
-    ESP_LOGW(TAG, "⚠️ Using SHA3-256 placeholder - NOT Ethereum Keccak-256");
+static void anchor_keccak256(const uint8_t *input, size_t len, uint8_t *output) {
+    keccak_256(input, len, output);
 }
-
-// Alias for code clarity
-#define anchor_keccak256 anchor_keccak256_placeholder
 
 // ============================================================================
 // CHIP-AGNOSTIC UNIQUE ID RETRIEVAL
@@ -473,7 +452,7 @@ static void print_receipt_json(
 #endif
 #endif
     
-    printf("    \"SHA3-256 placeholder - not Ethereum Keccak-256\",\n");
+    printf("    \"Ethereum Keccak-256 implementation\",\n");
     
 #if !CONFIG_SECURE_BOOT_V2_ENABLED
     printf("    \"Secure Boot disabled - development mode\",\n");
@@ -528,7 +507,7 @@ static void print_security_status(void) {
     }
     
     // Keccak implementation
-    printf("║ Keccak-256: ⚠️  SHA3 placeholder (needs Ethereum Keccak)     ║\n");
+    printf("║ Keccak-256: ✓ Ethereum-compatible implementation            ║\n");
     
     printf("╠═══════════════════════════════════════════════════════════════╣\n");
     
@@ -614,8 +593,8 @@ extern "C" void app_main(void) {
         printf("╔═══════════════════════════════════════════════════════════════╗\n");
         printf("║           PRODUCTION DEPLOYMENT REQUIREMENTS                  ║\n");
         printf("╠═══════════════════════════════════════════════════════════════╣\n");
-        printf("║ [ ] Replace SHA3-256 with Ethereum Keccak-256                ║\n");
-        printf("║     (tiny-keccak / XKCP / eth-keccak)                         ║\n");
+        printf("║ [x] Ethereum Keccak-256 implemented                          ║\n");
+        printf("║     (tiny-keccak with 0x01 padding)                           ║\n");
         printf("║                                                               ║\n");
         printf("║ [ ] Use ESP32-S2/S3/C3 with eFuse-backed unique ID            ║\n");
         printf("║                                                               ║\n");

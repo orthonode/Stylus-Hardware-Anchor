@@ -70,26 +70,25 @@ static void keccakf(uint64_t st[25]) {
 void keccak256(const uint8_t* input, size_t len, uint8_t output[32]) {
   uint64_t st[25] = {0};
   const size_t rate = 136; // 1088 bits / 8
-  size_t offset = 0;
   
-  // Absorb
+  // Absorb - using byte-wise XOR to avoid alignment issues
   while (len >= rate) {
-    for (size_t i = 0; i < rate / 8; i++) {
-      st[i] ^= ((uint64_t*)input)[i];
+    for (size_t i = 0; i < rate; i++) {
+      ((uint8_t*)st)[i] ^= input[i];
     }
     keccakf(st);
     input += rate;
     len -= rate;
   }
   
-  // Pad
+  // Pad (Keccak padding: 0x01 ... 0x80)
   uint8_t temp[200] = {0};
   memcpy(temp, input, len);
-  temp[len] = 0x01;
+  temp[len] = 0x01;          // Keccak padding (NOT SHA3's 0x06)
   temp[rate - 1] |= 0x80;
   
-  for (size_t i = 0; i < rate / 8; i++) {
-    st[i] ^= ((uint64_t*)temp)[i];
+  for (size_t i = 0; i < rate; i++) {
+    ((uint8_t*)st)[i] ^= temp[i];
   }
   keccakf(st);
   
@@ -133,7 +132,7 @@ void setup() {
   }
   Serial.println();
 
-  Serial.printf("Chip Model:           ESP32-S3 (Model %d)\n", chip_info.model);
+  Serial.printf("Chip Model:           %d\n", chip_info.model);
   Serial.printf("Chip Revision:        %d\n", chip_info.revision);
   Serial.println();
 
