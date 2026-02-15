@@ -33,7 +33,7 @@ Fix all identified bugs, errors, and inconsistencies in the SHA/Keccak implement
 | 10 | `ohr_firmware/src/main.cpp:136` | Hardcoded "ESP32-S3" in output | Incorrect on other chips |
 | 11 | `stylus_anchor/stylus_hardware_anchor/src/lib.rs:66-80` | Missing access control on admin functions | Anyone can authorize/revoke |
 | 12 | `stylus_anchor/stylus_hardware_anchor/Cargo.toml:7` | Old stylus-sdk version "0.6.0" vs "0.10.0" | Version mismatch between contracts |
-| 13 | `middleware/nexus_middleware.py:97` | Domain tag comment says 12 bytes but actual tag is 13 | Documentation mismatch |
+| 13 | `middleware/anchor_middleware.py:97` | Domain tag comment says 12 bytes but actual tag is 13 | Documentation mismatch |
 
 ### LOW (Minor/Cosmetic)
 

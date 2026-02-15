@@ -1,22 +1,33 @@
 import os
+from pathlib import Path
 from web3 import Web3
 from eth_account import Account
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
 
 # 1. Setup Connection
-w3 = Web3(Web3.HTTPProvider("https://sepolia-rollup.arbitrum.io/rpc"))
+rpc_url = os.getenv("RPC_URL")
+if not rpc_url:
+    raise ValueError("RPC_URL not found in .env")
+
+w3 = Web3(Web3.HTTPProvider(rpc_url))
 print(f"Connected to Arbitrum: {w3.is_connected()}")
 
 # 2. Account Configuration
-# Make sure ANCHOR_HARDWARE_KEY is set in your .env file
-private_key = os.getenv("ANCHOR_HARDWARE_KEY")
+private_key = os.getenv("PRIVATE_KEY")
 if not private_key:
-    raise ValueError("ANCHOR_HARDWARE_KEY not found in .env")
+    raise ValueError("PRIVATE_KEY not found in .env")
+
+if not private_key.startswith("0x"):
+    private_key = "0x" + private_key
 
 admin_account = Account.from_key(private_key)
-contract_address = w3.to_checksum_address("0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d")
+contract_address = os.getenv("CONTRACT_ADDRESS")
+if not contract_address:
+    raise ValueError("CONTRACT_ADDRESS not found in .env")
+
+contract_address = w3.to_checksum_address(contract_address)
 
 # 3. Fixed ABI (Now valid JSON)
 abi = [

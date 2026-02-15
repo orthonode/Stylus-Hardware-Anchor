@@ -11,10 +11,10 @@ This milestone establishes the foundational hardware-to-blockchain link for the 
 
 ### 1. Smart Contract Deployment ✅
 **Contract:** anchor Anchor  
-**Address:** `0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d`  
+**Address:** provided via `CONTRACT_ADDRESS` in `.env`  
 **Network:** Arbitrum Sepolia (Stylus)  
 **Technology:** Rust compiled to WASM  
-**Verification:** [View on Arbiscan](https://sepolia.arbiscan.io/address/0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d)
+**Verification:** inspect `$CONTRACT_ADDRESS` on Arbiscan
 
 **Contract Capabilities:**
 - Hardware node authorization/revocation
@@ -37,14 +37,14 @@ This milestone establishes the foundational hardware-to-blockchain link for the 
 **Code:** `ohr_firmware/src/main.cpp`
 
 ### 3. On-Chain Authorization Proof ✅
-**Transaction Hash:** `0x84aa8ded972c43baefb711089c54d9730f7964e85444596137b76f4e5991551c`  
+**Transaction Hash:** captured locally during testing (not committed)  
 **Status:** CONFIRMED  
 **Action:** Hardware node successfully authorized on-chain  
-**Verification:** [View on Arbiscan](https://sepolia.arbiscan.io/tx/0x84aa8ded972c43baefb711089c54d9730f7964e85444596137b76f4e5991551c)
+**Verification:** inspect your transaction hash on Arbiscan
 
 **Proof of State Mutation:**
-- Before authorization: `is_node_authorized(hw_id)` returns `False`
-- After authorization transaction: `is_node_authorized(hw_id)` returns `True` ✅
+- Before authorization: `isNodeAuthorized(hw_id)` returns `False`
+- After authorization transaction: `isNodeAuthorized(hw_id)` returns `True` ✅
 
 ### 4. Verification Protocol ✅
 **Receipt Format:** 117 bytes (domain tag 13 bytes: `"anchor_RCT_V1"`). Keccak-256 uses Ethereum-compatible padding (0x01).
@@ -106,7 +106,7 @@ graph TD
 ## Technical Implementation
 
 ### Smart Contract (Rust/Stylus)
-**File:** `contracts/src/lib.rs`
+**File:** `stylus_anchor/stylus_hardware_anchor/src/lib.rs`
 
 ```rust
 type U64 = Uint<64, 1>;
@@ -159,7 +159,7 @@ from web3 import Web3
 # Hardware ID from ESP32-S3
 hw_id = bytes.fromhex("abc123...")
 # Authorize on-chain
-tx_hash = anchor.functions.authorize_node(hw_id).transact()
+tx_hash = anchor.functions.authorizeNode(hw_id).transact()
 print(f"✅ Authorized: {receipt['status'] == 1}")
 ```
 
@@ -204,8 +204,8 @@ stylus-hardware-anchor/
 ```
 
 ### Transaction Evidence
-**Contract:** `0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d`  
-**Authorization TX:** `0x84aa8ded972c43baefb711089c54d9730f7964e85444596137b76f4e5991551c`
+**Contract:** `$CONTRACT_ADDRESS`  
+**Authorization TX:** captured locally during testing
 
 ---
 

@@ -162,12 +162,14 @@ cargo stylus deploy \
   --max-fee-per-gas-gwei=0.1
 ```
 
-**Resolution Status:** ✅ Fully resolved. Contract successfully deployed and activated at `0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d` on Arbitrum Sepolia.
+**Resolution Status:** ✅ Fully resolved. Contract successfully deployed and activated on Arbitrum Sepolia.
+
+**Note:** Deployment addresses are environment-specific and should be provided via `.env` (`CONTRACT_ADDRESS`).
 
 **Deployment Details:**
-- Contract Size: 7.1 KB (compressed)
-- Deployment Tx: `0x68d5be22f488320d2e35709104cfc9187a13c1a6428543d3b8a8a79f1d21ce41`
-- Activation Tx: `0x2c4d91831c5e6541fec0b35531fb0790ed9ee435653835e0a331e2db6da93910`
+- Contract Size: (record locally)
+- Deployment Tx: (record locally)
+- Activation Tx: (record locally)
 - Status: Active and verified on-chain
 
 ---

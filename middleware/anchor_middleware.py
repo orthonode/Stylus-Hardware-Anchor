@@ -27,26 +27,24 @@ load_dotenv()
 RPC_URL = os.getenv("RPC_URL")
 CHAIN_ID = 421614  # Arbitrum Sepolia
 
-# anchorAnchor Contract (VERIFIED DEPLOYMENT)
-CONTRACT_ADDRESS = os.getenv(
-    "CONTRACT_ADDRESS", "0xbd4548598e968a4eafd06193bcaa30b8f9b52a76"
-)
+# StylusHardwareAnchor Contract
+CONTRACT_ADDRESS = os.getenv("CONTRACT_ADDRESS")
 
-# SECURITY FIX: Secure Private Key Handling
-# Pulled from .env or environment variable for grant-level security.
-PRIVATE_KEY = os.getenv("anchor_ANCHOR_KEY")
+# Secure Private Key Handling
+PRIVATE_KEY = os.getenv("PRIVATE_KEY")
 
 # ============================================================================
 # INITIALIZATION & SAFETY CHECKS
 # ============================================================================
 
 if not PRIVATE_KEY:
-    raise ValueError(
-        "CRITICAL: anchor_ANCHOR_KEY not found in environment or .env file."
-    )
+    raise ValueError("CRITICAL: PRIVATE_KEY not found in environment or .env file.")
 
 if not RPC_URL:
     raise ValueError("CRITICAL: RPC_URL not found in .env file.")
+
+if not CONTRACT_ADDRESS:
+    raise ValueError("CRITICAL: CONTRACT_ADDRESS not found in .env file.")
 
 # Initialize Web3 & Account
 w3 = Web3(Web3.HTTPProvider(RPC_URL))
@@ -60,16 +58,22 @@ print(f"Using Account: {account.address}")
 CONTRACT_ABI = [
     {
         "type": "function",
-        "name": "verifyExecution",
-        "inputs": [{"name": "receipt_digest", "type": "bytes32"}],
+        "name": "verifyReceipt",
+        "inputs": [
+            {"name": "hw_id", "type": "bytes32"},
+            {"name": "fw_hash", "type": "bytes32"},
+            {"name": "exec_hash", "type": "bytes32"},
+            {"name": "counter", "type": "uint64"},
+            {"name": "claimed_digest", "type": "bytes32"},
+        ],
         "outputs": [],
         "stateMutability": "nonpayable",
     },
     {
         "type": "function",
-        "name": "getVerifiedCount",
+        "name": "getCounter",
         "inputs": [],
-        "outputs": [{"name": "", "type": "uint256"}],
+        "outputs": [{"name": "", "type": "uint64"}],
         "stateMutability": "view",
     },
 ]
@@ -85,7 +89,8 @@ class anchorMiddleware:
 
         self.account = Account.from_key(PRIVATE_KEY)
         self.contract = self.w3.eth.contract(
-            address=Web3.to_checksum_address(CONTRACT_ADDRESS), abi=CONTRACT_ABI
+            address=Web3.to_checksum_address(CONTRACT_ADDRESS),
+            abi=CONTRACT_ABI,
         )
 
         # SECURITY FIX #2: State-aware replay protection
@@ -116,21 +121,31 @@ class anchorMiddleware:
         return True
 
     def anchor_receipt(
-        self, receipt_digest_hex, hardware_identity_hex=None, counter=None
+        self,
+        hw_id_hex,
+        fw_hash_hex,
+        exec_hash_hex,
+        counter,
+        claimed_digest_hex,
     ):
         """
         Anchors the hardware attestation to Arbitrum.
         """
-        # Normalize digest
-        if not receipt_digest_hex.startswith("0x"):
-            receipt_digest_hex = "0x" + receipt_digest_hex
 
-        digest_bytes = Web3.to_bytes(hexstr=receipt_digest_hex)
+        def _norm_0x(value: str) -> str:
+            return value if value.startswith("0x") else "0x" + value
 
-        # Enforce Replay Protection if identity is provided
-        # TODO (Phase 3): map hardware_identity -> authorized on-chain address
-        if hardware_identity_hex and counter is not None:
-            self.verify_counter_progression(counter, hardware_identity_hex)
+        hw_id_hex = _norm_0x(hw_id_hex)
+        fw_hash_hex = _norm_0x(fw_hash_hex)
+        exec_hash_hex = _norm_0x(exec_hash_hex)
+        claimed_digest_hex = _norm_0x(claimed_digest_hex)
+
+        hw_id_bytes = Web3.to_bytes(hexstr=hw_id_hex)
+        fw_hash_bytes = Web3.to_bytes(hexstr=fw_hash_hex)
+        exec_hash_bytes = Web3.to_bytes(hexstr=exec_hash_hex)
+        claimed_digest_bytes = Web3.to_bytes(hexstr=claimed_digest_hex)
+
+        self.verify_counter_progression(counter, hw_id_hex)
 
         # Build transaction with 'pending' nonce for better throughput
         nonce = self.w3.eth.get_transaction_count(self.account.address, "pending")
@@ -139,7 +154,13 @@ class anchorMiddleware:
         base_fee = self.w3.eth.get_block("latest")["baseFeePerGas"]
         max_fee = int(base_fee * 1.5)  # 50% buffer
 
-        tx = self.contract.functions.verifyExecution(digest_bytes).build_transaction(
+        tx = self.contract.functions.verifyReceipt(
+            hw_id_bytes,
+            fw_hash_bytes,
+            exec_hash_bytes,
+            counter,
+            claimed_digest_bytes,
+        ).build_transaction(
             {
                 "chainId": CHAIN_ID,
                 "from": self.account.address,
@@ -153,7 +174,7 @@ class anchorMiddleware:
         signed_tx = self.account.sign_transaction(tx)
         tx_hash = self.w3.eth.send_raw_transaction(signed_tx.raw_transaction)
 
-        print(f"🚀 Anchoring Digest: {receipt_digest_hex}")
+        print(f"🚀 Anchoring Receipt: {hw_id_hex} counter={counter}")
 
         try:
             receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
@@ -171,6 +192,9 @@ class anchorMiddleware:
 
 if __name__ == "__main__":
     nm = anchorMiddleware()
-    # Test Anchor (Placeholder Digest)
-    test_digest = "0x" + "bb" * 32
-    nm.anchor_receipt(test_digest, hardware_identity_hex="ESP32-S3-DEVKIT", counter=1)
+    test_hw = "0x" + "11" * 32
+    test_fw = "0x" + "22" * 32
+    test_exec = "0x" + "33" * 32
+    test_counter = 1
+    test_digest = "0x" + "44" * 32
+    nm.anchor_receipt(test_hw, test_fw, test_exec, test_counter, test_digest)

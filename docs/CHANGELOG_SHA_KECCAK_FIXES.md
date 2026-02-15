@@ -93,7 +93,7 @@ Stylus Hardware Anchor codebase. All changes ensure Ethereum-compatible Keccak-2
 
 ---
 
-### 7. `middleware/nexus_middleware.py`
+### 7. `middleware/anchor_middleware.py`
 
 **Fix: Documentation Mismatch**
 - Updated comment from "12 bytes, ASCII" to "13 bytes, ASCII" for the domain tag
@@ -156,20 +156,18 @@ These are architectural observations, not defects:
 1. **Two Stylus Contracts Exist**
    - `stylus_anchor/src/lib.rs` - Simple contract (sdk 0.10.0, deployed on Sepolia)
    - `stylus_anchor/stylus_hardware_anchor/src/lib.rs` - Full verification contract (sdk 0.6.0)
-   - The simple contract is the one currently deployed and tested on-chain
+   - Use `CONTRACT_ADDRESS` from your `.env` to select the active deployment
 
-2. **Different Environment Variable Names**
-   - `authorize_hardware.py` uses `ANCHOR_HARDWARE_KEY`
-   - `nexus_middleware.py` uses `anchor_ANCHOR_KEY`
-   - `.env.example` documents `PRIVATE_KEY`
-   - Each serves a different operational role
+2. **Environment Variable Conventions**
+   - Repository convention is:
+     - `RPC_URL`
+     - `CONTRACT_ADDRESS`
+     - `PRIVATE_KEY`
 
-3. **Two Default Contract Addresses**
-   - Scripts use `0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d`
-   - Middleware defaults to `0xbd4548598e968a4eafd06193bcaa30b8f9b52a76`
-   - Middleware reads from `.env` so it's overridable
+3. **Deployment Addresses**
+   - Deployment addresses are environment-specific and should not be hardcoded in the repo
+   - Use `.env` for local configuration
 
-4. **No Access Control on Stylus Admin Functions**
-   - `authorize_node()`, `revoke_node()`, `approve_firmware()`, `revoke_firmware()`
-     have no owner check
-   - Fixing this requires contract redeployment
+4. **Legacy Deployments**
+   - Earlier deployments without owner-gated admin functions should be treated as deprecated
+   - Current deployments should enforce owner gating and be the only addresses referenced by tooling

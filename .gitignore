@@ -9,6 +9,12 @@ HARDWARE_ID.txt
 CONTRACT_ADDRESS.txt
 *.pem
 *.key
+deployer.key
+**/deployer.key
+abi.json
+**/abi.json
+FULL_CONTEXT.txt
+DEBUG_PROMPT.md
 
 # =====================================
 # Rust / Cargo (Smart Contracts)

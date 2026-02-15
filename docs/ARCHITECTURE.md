@@ -147,7 +147,7 @@ ohr_firmware/
 
 #### Contract Address
 
-- **Testnet (Sepolia):** `0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d`
+- **Testnet (Sepolia):** provided via `CONTRACT_ADDRESS` in `.env`
 - **Mainnet:** Planned for Phase 2 (future grant); not in Phase 1 scope
 
 #### Storage Schema
@@ -179,26 +179,26 @@ pub struct anchorAnchor {
 
 | Function | Purpose | Gas Cost (est.) |
 |----------|---------|-----------------|
-| `authorize_node(hw_id)` | Add hardware to allowlist | ~50k gas |
-| `revoke_node(hw_id)` | Remove hardware authorization | ~30k gas |
-| `approve_firmware(fw_hash)` | Approve firmware version | ~50k gas |
-| `revoke_firmware(fw_hash)` | Revoke firmware approval | ~30k gas |
-| `transfer_ownership(new_owner)` | Transfer admin control | ~45k gas (preliminary benchmark, Sepolia controlled conditions) |
+| `authorizeNode(hw_id)` | Add hardware to allowlist | ~50k gas |
+| `revokeNode(hw_id)` | Remove hardware authorization | ~30k gas |
+| `approveFirmware(fw_hash)` | Approve firmware version | ~50k gas |
+| `revokeFirmware(fw_hash)` | Revoke firmware approval | ~30k gas |
+| `transferOwnership(new_owner)` | Transfer admin control | ~45k gas (preliminary benchmark, Sepolia controlled conditions) |
 
 **Verification Functions** (Public):
 
 | Function | Purpose | Gas Cost (est.) |
 |----------|---------|-----------------|
-| `verify_receipt(...)` | Verify execution attestation | ~100k gas |
+| `verifyReceipt(...)` | Verify execution attestation | ~100k gas |
 
 **Query Functions** (View - Free):
 
 | Function | Purpose | Returns |
 |----------|---------|---------|
-| `is_node_authorized(hw_id)` | Check authorization status | `bool` |
-| `is_firmware_approved(fw_hash)` | Check firmware approval | `bool` |
-| `get_counter(hw_id)` | Get last counter value | `uint64` |
-| `owner()` | Get current owner address | `address` |
+| `isNodeAuthorized(hw_id)` | Check authorization status | `bool` |
+| `isFirmwareApproved(fw_hash)` | Check firmware approval | `bool` |
+| `getCounter(hw_id)` | Get last counter value | `uint64` |
+| `getOwner()` | Get current owner address | `address` |
 
 #### File Structure
 
@@ -264,7 +264,7 @@ const RECEIPT_MATERIAL_SIZE: usize = 117;  // 13 + 32 + 32 + 32 + 8
 #### Canonical Verification Algorithm
 
 ```
-FUNCTION verify_receipt(hw_id, fw_hash, exec_hash, counter, claimed_digest)
+FUNCTION verifyReceipt(hw_id, fw_hash, exec_hash, counter, claimed_digest)
 
   ┌──────────────────────────────────────────────────────┐
   │ STAGE 1: Identity Allowlist Check                   │
@@ -600,7 +600,7 @@ let digest = keccak256(&data);  // Returns FixedBytes<32>
 ```
 ┌───────────────────────────────────────────────────────┐
 │  Receipt Submitted to Smart Contract                  │
-│  └─ verify_receipt(hw, fw, exec, counter, digest)     │
+│  └─ verifyReceipt(hw, fw, exec, counter, digest)     │
 └─────────────────────┬─────────────────────────────────┘
                       │
                       ↓
@@ -965,7 +965,7 @@ interface IanchorAnchor {
      * @dev Only callable by contract owner
      * @dev Emits NodeAuthorized event
      */
-    function authorize_node(bytes32 hw_id) external;
+    function authorizeNode(bytes32 hw_id) external;
     
     /**
      * @notice Revoke authorization for a hardware node
@@ -973,7 +973,7 @@ interface IanchorAnchor {
      * @dev Only callable by contract owner
      * @dev Emits NodeRevoked event
      */
-    function revoke_node(bytes32 hw_id) external;
+    function revokeNode(bytes32 hw_id) external;
     
     /**
      * @notice Approve a firmware version for receipt generation
@@ -981,7 +981,7 @@ interface IanchorAnchor {
      * @dev Only callable by contract owner
      * @dev Emits FirmwareApproved event
      */
-    function approve_firmware(bytes32 fw_hash) external;
+    function approveFirmware(bytes32 fw_hash) external;
     
     /**
      * @notice Revoke approval for a firmware version
@@ -989,14 +989,14 @@ interface IanchorAnchor {
      * @dev Only callable by contract owner
      * @dev Emits FirmwareRevoked event
      */
-    function revoke_firmware(bytes32 fw_hash) external;
+    function revokeFirmware(bytes32 fw_hash) external;
     
     /**
      * @notice Transfer contract ownership
      * @param new_owner Address of new owner
      * @dev Only callable by current owner
      */
-    function transfer_ownership(address new_owner) external;
+    function transferOwnership(address new_owner) external;
     
     // ============================================================
     // VERIFICATION FUNCTION (Public)
@@ -1013,7 +1013,7 @@ interface IanchorAnchor {
      * @dev Updates on-chain counter on success
      * @dev Emits ReceiptVerified event on success
      */
-    function verify_receipt(
+    function verifyReceipt(
         bytes32 hw_id,
         bytes32 fw_hash,
         bytes32 exec_hash,
@@ -1030,27 +1030,27 @@ interface IanchorAnchor {
      * @param hw_id Hardware identity to check
      * @return True if authorized, false otherwise
      */
-    function is_node_authorized(bytes32 hw_id) external view returns (bool);
+    function isNodeAuthorized(bytes32 hw_id) external view returns (bool);
     
     /**
      * @notice Check if a firmware version is approved
      * @param fw_hash Firmware hash to check
      * @return True if approved, false otherwise
      */
-    function is_firmware_approved(bytes32 fw_hash) external view returns (bool);
+    function isFirmwareApproved(bytes32 fw_hash) external view returns (bool);
     
     /**
      * @notice Get the last verified counter for a hardware node
      * @param hw_id Hardware identity
      * @return Last counter value (0 if never verified)
      */
-    function get_counter(bytes32 hw_id) external view returns (uint64);
+    function getCounter(bytes32 hw_id) external view returns (uint64);
     
     /**
      * @notice Get the current contract owner
      * @return Owner address
      */
-    function owner() external view returns (address);
+    function getOwner() external view returns (address);
     
     // ============================================================
     // EVENTS
@@ -1077,13 +1077,13 @@ import json
 # ============================================================================
 
 # Connect to Arbitrum
-w3 = Web3(Web3.HTTPProvider('https://sepolia-rollup.arbitrum.io/rpc'))
+w3 = Web3(Web3.HTTPProvider(os.getenv('RPC_URL', 'https://sepolia-rollup.arbitrum.io/rpc')))
 
 # Load contract
 with open('anchorAnchor.abi.json') as f:
     abi = json.load(f)
 
-contract_address = '0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d'
+contract_address = os.getenv('CONTRACT_ADDRESS')
 anchor = w3.eth.contract(address=contract_address, abi=abi)
 
 # Setup account
@@ -1094,11 +1094,11 @@ account = Account.from_key(private_key)
 # ADMINISTRATIVE OPERATIONS
 # ============================================================================
 
-def authorize_node(hw_id_hex: str) -> str:
+def authorizeNode(hw_id_hex: str) -> str:
     """Authorize a hardware node"""
     hw_id = bytes.fromhex(hw_id_hex.replace('0x', ''))
     
-    tx = anchor.functions.authorize_node(hw_id).build_transaction({
+    tx = anchor.functions.authorizeNode(hw_id).build_transaction({
         'from': account.address,
         'nonce': w3.eth.get_transaction_count(account.address),
         'gas': 100000,
@@ -1115,7 +1115,7 @@ def approve_firmware(fw_hash_hex: str) -> str:
     """Approve a firmware version"""
     fw_hash = bytes.fromhex(fw_hash_hex.replace('0x', ''))
     
-    # Similar to authorize_node...
+    # Similar to authorizeNode...
     pass
 
 # ============================================================================
@@ -1131,7 +1131,7 @@ def verify_receipt(
 ) -> str:
     """Submit a receipt for verification"""
     
-    tx = anchor.functions.verify_receipt(
+    tx = anchor.functions.verifyReceipt(
         bytes.fromhex(hw_id.replace('0x', '')),
         bytes.fromhex(fw_hash.replace('0x', '')),
         bytes.fromhex(exec_hash.replace('0x', '')),
@@ -1157,12 +1157,12 @@ def verify_receipt(
 def is_authorized(hw_id_hex: str) -> bool:
     """Check if node is authorized"""
     hw_id = bytes.fromhex(hw_id_hex.replace('0x', ''))
-    return anchor.functions.is_node_authorized(hw_id).call()
+    return anchor.functions.isNodeAuthorized(hw_id).call()
 
 def get_counter(hw_id_hex: str) -> int:
     """Get last counter value"""
     hw_id = bytes.fromhex(hw_id_hex.replace('0x', ''))
-    return anchor.functions.get_counter(hw_id).call()
+    return anchor.functions.getCounter(hw_id).call()
 ```
 
 ### ESP32-S3 C++ API
@@ -1430,8 +1430,8 @@ export CONTRACT_ADDRESS="0x..."
 ```python
 from web3 import Web3
 
-w3 = Web3(Web3.HTTPProvider('https://sepolia-rollup.arbitrum.io/rpc'))
-code = w3.eth.get_code('0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d')
+w3 = Web3(Web3.HTTPProvider(os.getenv('RPC_URL', 'https://sepolia-rollup.arbitrum.io/rpc')))
+code = w3.eth.get_code(os.getenv('CONTRACT_ADDRESS'))
 
 assert len(code) > 0, "Contract not deployed"
 print(f"✓ Contract deployed: {len(code)} bytes")
@@ -1495,7 +1495,7 @@ hw_id = "0xABCD...1234"  # From serial output
 
 # Authorize
 account = Account.from_key(PRIVATE_KEY)
-tx = anchor.functions.authorize_node(bytes.fromhex(hw_id[2:])).build_transaction({
+tx = anchor.functions.authorizeNode(bytes.fromhex(hw_id[2:])).build_transaction({
     'from': account.address,
     'nonce': w3.eth.get_transaction_count(account.address)
 })
@@ -1533,12 +1533,12 @@ receipt_json = '{"hardware_identity": "0x...", ...}'
 receipt = json.loads(receipt_json)
 
 # Submit to contract
-tx = anchor.functions.verify_receipt(
+tx = anchor.functions.verifyReceipt(
     bytes.fromhex(receipt['hardware_identity'][2:]),
     bytes.fromhex(receipt['firmware_hash'][2:]),
     bytes.fromhex(receipt['execution_hash'][2:]),
     receipt['counter'],
-    bytes.fromhex(receipt['receipt_digest'][2:])
+    bytes.fromhex(receipt['receipt_digest'][2:]),
 ).build_transaction({
     'from': account.address,
     'nonce': w3.eth.get_transaction_count(account.address)

@@ -38,12 +38,30 @@ No professional third-party audit has been conducted. Mainnet deployment is not 
 
 ---
 
+## Start Here (Docs Index)
+
+This repo is intentionally **Stylus-first (Rust/WASM)**. For tooling like `cast`, always call the **exported ABI names** (Stylus SDK 0.6.x exports camelCase, e.g. `getOwner`, `authorizeNode`).
+
+Recommended reading order:
+
+1. [`SETUP_GUIDE.md`](SETUP_GUIDE.md)
+2. [`docs/DEPLOYMENT_GUIDE.md`](docs/DEPLOYMENT_GUIDE.md)
+3. [`docs/CAST_CHEATSHEET.md`](docs/CAST_CHEATSHEET.md)
+4. [`docs/ESP32_FLASH_SAFETY.md`](docs/ESP32_FLASH_SAFETY.md)
+5. [`docs/DEBUGGING_POSTMORTEM.md`](docs/DEBUGGING_POSTMORTEM.md)
+
+Configuration is environment-driven:
+
+- `RPC_URL`
+- `CONTRACT_ADDRESS`
+- `PRIVATE_KEY` (never commit; prefer local key files)
+
 ## 🔗 Live Evidence (Sepolia)
 
 | Artifact | Link |
 |----------|------|
-| Stylus Contract | [`0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d`](https://sepolia.arbiscan.io/address/0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d) |
-| Verification TX | [`0x84aa8ded...991551c`](https://sepolia.arbiscan.io/tx/0x84aa8ded972c43baefb711089c54d9730f7964e85444596137b76f4e5991551c) |
+| Stylus Contract | Set `CONTRACT_ADDRESS` in `.env` and inspect on Arbiscan |
+| Verification TX | Use your local transaction hashes (not committed) |
 | v1.0.0 Prototype Release | [View Release](https://github.com/arhantbarmate/stylus-hardware-anchor/releases/tag/v1.0.0) |
 
 ---

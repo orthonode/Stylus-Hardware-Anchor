@@ -2,6 +2,8 @@
 ## Setup & Testing Guide
 ### Zero to Hero — Windows | macOS | Linux
 
+For the canonical doc index, see `README.md` (Start Here). For copy/paste `cast` commands, see `docs/CAST_CHEATSHEET.md`.
+
 ---
 
 ## 📋 Introduction
@@ -33,13 +35,10 @@ Welcome to the Stylus Hardware Anchor (SHA) deployment guide. This document walk
 
 ### Important Contract Information
 
-The SHA contract is already deployed on Arbitrum Sepolia at:
+The contract address is deployment-specific and should be provided via your `.env`:
 
-```
-0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d
-```
-
-You can verify it on [Arbiscan Sepolia](https://sepolia.arbiscan.io/address/0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d)
+- `RPC_URL`
+- `CONTRACT_ADDRESS`
 
 ---
 
@@ -273,7 +272,7 @@ pio device monitor --baud 115200
 The device will output diagnostic information. Look for a line like this:
 
 ```
-Hardware Identity: 0x52fdfc072182654f163f5f0f9a621d729566c74d10037c4d7bbb0407d1e2c64981855ad8681d0d86d1e91e00167939cb6694d2c422acd208a0072939487f6999
+Hardware Identity: 0x52fdfc072182654f163f5f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f
 ```
 
 > 📋 **Important:** Copy this entire 64-character hexadecimal string. You will need it for authorization.
@@ -377,9 +376,9 @@ Let's verify that your hardware authorization was recorded on the blockchain:
 
 You can also view the contract directly:
 
-1. Visit: https://sepolia.arbiscan.io/address/0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d
+1. Visit: https://sepolia.arbiscan.io/address/$CONTRACT_ADDRESS
 2. Click **"Read Contract"**
-3. Query `isAuthorized` with your hardware ID
+3. Query `isNodeAuthorized` with your hardware ID
 
 ---
 
@@ -502,7 +501,7 @@ The next milestone will introduce:
 
 - **Website:** https://orthonode.xyz
 - **GitHub:** https://github.com/orthonode/Stylus-Hardware-Anchor
-- **Contract (Sepolia):** `0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d`
+- **Contract (Sepolia):** `$CONTRACT_ADDRESS` (from your local `.env`)
 - **Twitter/X:** [@OrthonodeSys](https://twitter.com/OrthonodeSys)
 
 ### Community & Feedback

@@ -1,11 +1,24 @@
 from web3 import Web3
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
 
 # 1. Connection
-w3 = Web3(Web3.HTTPProvider("https://sepolia-rollup.arbitrum.io/rpc"))
+rpc_url = os.getenv("RPC_URL")
+if not rpc_url:
+    raise ValueError("RPC_URL not found in .env")
+
+w3 = Web3(Web3.HTTPProvider(rpc_url))
 print(f"Connected to Arbitrum: {w3.is_connected()}")
 
 # 2. Fix: Checksummed Address (Mandatory for web3.py)
-contract_address = w3.to_checksum_address("0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d")
+contract_address = os.getenv("CONTRACT_ADDRESS")
+if not contract_address:
+    raise ValueError("CONTRACT_ADDRESS not found in .env")
+
+contract_address = w3.to_checksum_address(contract_address)
 
 # 3. Fix: CamelCase Names (To match Stylus export)
 abi = [

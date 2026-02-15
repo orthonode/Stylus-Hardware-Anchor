@@ -1,5 +1,7 @@
 # Stylus Hardware Anchor - Deployment Guide
 
+For the canonical doc index, see `README.md` (Start Here). For copy/paste `cast` commands, see `docs/CAST_CHEATSHEET.md`.
+
 **Version:** 1.0  
 **Target Environment:** Windows 11 + WSL 1 (Ubuntu)  
 **Last Updated:** February 8, 2026  
@@ -43,15 +45,15 @@ This guide walks through deployment of the Stylus Hardware Anchor (Sepolia proto
               ↓
 ┌─────────────────────────────────────────────────────┐
 │  Arbitrum Sepolia Testnet                           │
-│  - Contract: 0x34645ff1dd8af86176fe6b28812aaa4d... │
+│  - Contract: $CONTRACT_ADDRESS                       │
 │  - Stylus WASM Smart Contract                       │
 └─────────────────────────────────────────────────────┘
 ```
 
 **Key Deployment Facts:**
 - **Network:** Arbitrum Sepolia (testnet)
-- **Contract Address:** `0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d`
-- **Example Authorization TX:** `0x84aa8ded972c43baefb711089c54d9730f7964e85444596137b76f4e5991551c`
+- **Contract Address:** provided via `CONTRACT_ADDRESS` in your `.env`
+- **RPC:** provided via `RPC_URL` in your `.env`
 
 ---
 
@@ -354,7 +356,7 @@ cargo stylus deploy --private-key=$PRIVATE_KEY --endpoint=$RPC_URL
 **Deploy Command:**
 ```bash
 # Set environment variables
-export PRIVATE_KEY="your_private_key_here"  # WITHOUT 0x prefix
+export PRIVATE_KEY="your_private_key_here"  # 64 hex chars, with or without 0x
 export RPC_URL="https://sepolia-rollup.arbitrum.io/rpc"
 
 # Verify cargo-stylus version
@@ -368,14 +370,14 @@ cargo stylus deploy \
 
 # Expected output:
 # Deploying contract...
-# Contract deployed at: 0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d
+# Contract deployed at: 0x<your_deployed_contract_address>
 # Transaction hash: 0x...
 ```
 
 **Save Contract Address:**
 ```bash
 # Save for later use
-export CONTRACT_ADDRESS="0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d"
+export CONTRACT_ADDRESS="0x<your_deployed_contract_address>"
 echo $CONTRACT_ADDRESS > ../CONTRACT_ADDRESS.txt
 ```
 
@@ -705,23 +707,26 @@ from web3 import Web3
 from eth_account import Account
 
 # Arbitrum Sepolia RPC
-RPC_URL = "https://sepolia-rollup.arbitrum.io/rpc"
+RPC_URL = os.environ.get("RPC_URL", "https://sepolia-rollup.arbitrum.io/rpc")
 
-# Contract address (deployed earlier)
-CONTRACT_ADDRESS = "0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d"
+# Contract address (deployment-specific)
+CONTRACT_ADDRESS = os.environ.get("CONTRACT_ADDRESS")
 
-# Minimal ABI (just authorize_node function)
+if not CONTRACT_ADDRESS:
+    raise Exception("CONTRACT_ADDRESS must be set in environment")
+
+# Minimal ABI (authorizeNode + isNodeAuthorized)
 ABI = [
     {
         "inputs": [{"internalType": "bytes32", "name": "hw_id", "type": "bytes32"}],
-        "name": "authorize_node",
+        "name": "authorizeNode",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
     },
     {
         "inputs": [{"internalType": "bytes32", "name": "hw_id", "type": "bytes32"}],
-        "name": "is_node_authorized",
+        "name": "isNodeAuthorized",
         "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
         "stateMutability": "view",
         "type": "function"
@@ -765,7 +770,7 @@ def authorize_hardware(hw_id_hex: str, private_key: str) -> str:
     print(f"\n✓ Hardware ID: {hw_id_hex}")
     
     # Check if already authorized
-    is_authorized = contract.functions.is_node_authorized(hw_id_bytes).call()
+    is_authorized = contract.functions.isNodeAuthorized(hw_id_bytes).call()
     
     if is_authorized:
         print(f"\n⚠️  Hardware already authorized")
@@ -774,7 +779,7 @@ def authorize_hardware(hw_id_hex: str, private_key: str) -> str:
     # Build transaction
     print(f"\n⏳ Building authorization transaction...")
     
-    tx = contract.functions.authorize_node(hw_id_bytes).build_transaction({
+    tx = contract.functions.authorizeNode(hw_id_bytes).build_transaction({
         'from': account.address,
         'nonce': w3.eth.get_transaction_count(account.address),
         'gas': 100000,
@@ -801,7 +806,7 @@ def authorize_hardware(hw_id_hex: str, private_key: str) -> str:
         print(f"  Gas used: {receipt['gasUsed']}")
         
         # Verify authorization
-        is_authorized = contract.functions.is_node_authorized(hw_id_bytes).call()
+        is_authorized = contract.functions.isNodeAuthorized(hw_id_bytes).call()
         print(f"  Authorization verified: {is_authorized}")
         
         return tx_hash.hex()
@@ -881,11 +886,11 @@ python3 scripts/authorize_hardware.py --hw-id $HW_ID
 # 
 # ⏳ Building authorization transaction...
 # ⏳ Sending transaction...
-# ✓ Transaction sent: 0x84aa8ded972c43baefb711089c54d9730f7964e85444596137b76f4e5991551c
+# ✓ Transaction sent: 0x<your_tx_hash>
 #   Waiting for confirmation...
 # 
 # ✓ SUCCESS: Hardware authorized!
-#   Transaction: 0x84aa8ded972c43baefb711089c54d9730f7964e85444596137b76f4e5991551c
+#   Transaction: 0x<your_tx_hash>
 #   Block: 123457
 #   Gas used: 48723
 #   Authorization verified: True
@@ -900,12 +905,12 @@ from web3 import Web3
 
 w3 = Web3(Web3.HTTPProvider('https://sepolia-rollup.arbitrum.io/rpc'))
 
-ABI = [{"inputs": [{"internalType": "bytes32", "name": "hw_id", "type": "bytes32"}], "name": "is_node_authorized", "outputs": [{"internalType": "bool", "name": "", "type": "bool"}], "stateMutability": "view", "type": "function"}]
+ABI = [{"inputs": [{"internalType": "bytes32", "name": "hw_id", "type": "bytes32"}], "name": "isNodeAuthorized", "outputs": [{"internalType": "bool", "name": "", "type": "bool"}], "stateMutability": "view", "type": "function"}]
 
 contract = w3.eth.contract(address='$CONTRACT_ADDRESS', abi=ABI)
 
 hw_id = bytes.fromhex('${HW_ID:2}')  # Remove 0x
-is_authorized = contract.functions.is_node_authorized(hw_id).call()
+is_authorized = contract.functions.isNodeAuthorized(hw_id).call()
 
 print(f"Hardware ID: $HW_ID")
 print(f"Authorized: {is_authorized}")
@@ -914,7 +919,7 @@ EOF
 
 **View on Block Explorer:**
 ```
-https://sepolia.arbiscan.io/tx/0x84aa8ded972c43baefb711089c54d9730f7964e85444596137b76f4e5991551c
+https://sepolia.arbiscan.io/tx/<your_tx_hash>
 ```
 
 ---
@@ -1273,7 +1278,7 @@ You have completed prototype deployment if:
 
 3. **Hardware Authorized** ✅
    - `authorize_hardware.py` transaction confirmed
-   - `is_node_authorized()` returns `true`
+   - `isNodeAuthorized()` returns `true`
    - Transaction visible on Arbiscan
 
 4. **Receipt Generated** ✅
@@ -1379,7 +1384,7 @@ To unlock full verification:
 - [ ] **Hardware Authorized**
   - [ ] `authorize_hardware.py` ran successfully
   - [ ] Transaction confirmed on-chain
-  - [ ] Authorization verified with `is_node_authorized()`
+  - [ ] Authorization verified with `isNodeAuthorized()`
 
 - [ ] **Firmware Approved** (if needed)
   - [ ] Firmware hash computed
@@ -1417,7 +1422,7 @@ To unlock full verification:
 
 - [ ] **Authorization TX Recorded**
   ```
-  https://sepolia.arbiscan.io/tx/0x84aa8ded...
+  https://sepolia.arbiscan.io/tx/0x<your_tx_hash>
   ```
 
 ---
@@ -1521,8 +1526,7 @@ python3 anchor_canonical_verifier.py
 
 | Item | Address |
 |------|---------|
-| **Contract (Sepolia)** | `0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d` |
-| **Example Auth TX** | `0x84aa8ded972c43baefb711089c54d9730f7964e85444596137b76f4e5991551c` |
+| **Contract (Sepolia)** | `$CONTRACT_ADDRESS` |
 | **Arbiscan (Sepolia)** | https://sepolia.arbiscan.io/ |
 
 ### Support Resources
@@ -1552,21 +1556,24 @@ from web3 import Web3
 from eth_account import Account
 
 # Configuration
-RPC_URL = "https://sepolia-rollup.arbitrum.io/rpc"
-CONTRACT_ADDRESS = "0x34645ff1dd8af86176fe6b28812aaa4d85e33b0d"
+RPC_URL = os.environ.get("RPC_URL", "https://sepolia-rollup.arbitrum.io/rpc")
+CONTRACT_ADDRESS = os.environ.get("CONTRACT_ADDRESS")
+
+if not CONTRACT_ADDRESS:
+    raise Exception("CONTRACT_ADDRESS must be set in environment")
 
 # Minimal ABI
 ABI = [
     {
         "inputs": [{"internalType": "bytes32", "name": "hw_id", "type": "bytes32"}],
-        "name": "authorize_node",
+        "name": "authorizeNode",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
     },
     {
         "inputs": [{"internalType": "bytes32", "name": "hw_id", "type": "bytes32"}],
-        "name": "is_node_authorized",
+        "name": "isNodeAuthorized",
         "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
         "stateMutability": "view",
         "type": "function"
@@ -1617,7 +1624,7 @@ def authorize_hardware(hw_id_hex: str, private_key: str) -> str:
     print(f"\n✓ Hardware ID: {hw_id_hex}")
     
     # Check if already authorized
-    is_authorized = contract.functions.is_node_authorized(hw_id_bytes).call()
+    is_authorized = contract.functions.isNodeAuthorized(hw_id_bytes).call()
     
     if is_authorized:
         print(f"\n⚠️  Hardware already authorized")
@@ -1630,7 +1637,7 @@ def authorize_hardware(hw_id_hex: str, private_key: str) -> str:
     nonce = w3.eth.get_transaction_count(account.address)
     gas_price = w3.eth.gas_price
     
-    tx = contract.functions.authorize_node(hw_id_bytes).build_transaction({
+    tx = contract.functions.authorizeNode(hw_id_bytes).build_transaction({
         'from': account.address,
         'nonce': nonce,
         'gas': 100000,
@@ -1666,7 +1673,7 @@ def authorize_hardware(hw_id_hex: str, private_key: str) -> str:
         print(f"  Actual Cost: {w3.from_wei(receipt['gasUsed'] * gas_price, 'ether')} ETH")
         
         # Verify authorization
-        is_authorized = contract.functions.is_node_authorized(hw_id_bytes).call()
+        is_authorized = contract.functions.isNodeAuthorized(hw_id_bytes).call()
         print(f"\n✓ Authorization Verified: {is_authorized}")
         
         return tx_hash.hex()
