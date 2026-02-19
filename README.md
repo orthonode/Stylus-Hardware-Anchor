@@ -147,7 +147,53 @@ Professional audit and mainnet deployment are explicitly deferred to Phase 2.
 
 ---
 
-## 📄 License
+## � ZKP Integration (vlayer Grant)
+
+**Branch**: [`feat/zkp-vlayer-integration`](https://github.com/arhantbarmate/stylus-hardware-anchor/tree/feat/zkp-vlayer-integration)  
+**Grant Applied**: 2026-02-19  
+**Status**: Phase 1 Complete ✅ — Architecture & Interface Design
+
+SHA × vlayer adds **cryptographic execution correctness** to hardware identity verification. This creates a 4-layer security model:
+
+| Layer | Guarantee | Status |
+|-------|-----------|--------|
+| Silicon Identity | eFuse → Keccak → on-chain allowlist | ✅ Live on Sepolia |
+| Firmware Governance | Approved firmware hash gating | ✅ Live on Sepolia |
+| Replay Protection | Monotonic counter enforcement | ✅ Live on Sepolia |
+| **ZK Execution Proof** | **vlayer circuit + Stylus verifier** | 🔄 Phase 2 |
+
+### Key Features
+- **Additive ZK**: Stage 4 verification, preserves SHA v1 guarantees
+- **Off-chain Prover**: ESP32 too weak for ZK generation; prover runs separately
+- **Audit Mode**: Safe migration with `zk_mode_enabled` flag
+- **No Format Changes**: Uses existing `exec_hash` as ZK public input
+
+### Quick Start (Phase 1)
+```bash
+# Checkout ZKP branch
+git checkout feat/zkp-vlayer-integration
+
+# Explore architecture
+cat docs/zkp/ARCHITECTURE.md
+cat docs/zkp/CIRCUIT_SPEC.md
+cat docs/zkp/ZK_ROADMAP.md
+
+# Review interfaces
+cat zkp/contracts/IZkVerifier.rs
+cat zkp/contracts/sha_v2_interface.rs
+```
+
+### Phase Roadmap
+- **Phase 1** ✅: Architecture, interfaces, documentation (current)
+- **Phase 2** ⏳: Noir circuit + SHA v2 contract + end-to-end testnet
+- **Phase 3** ⏳: Batch proof aggregation (N=50 → ~16k gas/receipt)
+- **Phase 4** ⏳: Recursive ZK for 1000+ device networks
+
+**Details**: See [`docs/zkp/`](docs/zkp/) directory and [`PROGRESS.md`](PROGRESS.md)
+
+---
+
+## �📄 License
 
 MIT — See [LICENSE](LICENSE)
 
