@@ -60,7 +60,7 @@ Configuration is environment-driven:
 
 | Artifact | Link |
 |----------|------|
-| Stylus Contract | Set `CONTRACT_ADDRESS` in `.env` and inspect on Arbiscan |
+| Stylus Contract | [`0xD661a1aB8CEFaaCd78F4B968670C3bC438415615`](https://sepolia.arbiscan.io/address/0xD661a1aB8CEFaaCd78F4B968670C3bC438415615) |
 | Verification TX | Use your local transaction hashes (not committed) |
 | Gas Benchmarks | See `BENCHMARKS.md` for batch verification results |
 | v1.0.0 Prototype Release | [View Release](https://github.com/arhantbarmate/stylus-hardware-anchor/releases/tag/v1.0.0) |
