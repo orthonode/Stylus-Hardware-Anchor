@@ -16,6 +16,17 @@ Welcome to the Stylus Hardware Anchor (SHA) deployment guide. This document walk
 - How to flash firmware to your ESP32-S3 hardware
 - How to extract your unique hardware identity
 - How to authorize your hardware on the Arbitrum blockchain
+- How to run verification benchmarks and tests
+
+### ⚠️ Important Notice
+
+This is a **research prototype**, not production infrastructure. The current deployed contract at `0xD661a1aB8CEFaaCd78F4B968670C3bC438415615` has known limitations:
+
+- ✅ **Batch verification** (primary interface) works correctly
+- ⚠️ **Single verification** has counter synchronization issues under investigation
+- 📊 **Batch verification** is the recommended integration pattern for DePIN use cases
+
+See README.md for full technical details.
 
 ---
 
@@ -100,12 +111,25 @@ Most ESP32-S3 boards use CP210x or CH340 USB-to-serial chips. Download and insta
 Create a dedicated project folder and virtual environment:
 
 ```bash
-mkdir orthonode_test
-cd orthonode_test
+mkdir stylus-hardware-anchor
+cd stylus-hardware-anchor
 python -m venv venv
 venv\Scripts\activate
-pip install web3 eth-account eth-hash[pycryptodome]
 ```
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/arhantbarmate/stylus-hardware-anchor .
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
+```
+
+> 💡 **Important:** Always activate the virtual environment before running scripts:
+> ```bash
+> venv\Scripts\activate  # Windows
+> source venv/bin/activate  # macOS/Linux
+> ```
 
 ---
 
@@ -136,11 +160,23 @@ brew install --cask wch-ch34x-usb-serial-driver
 #### D. Setup Python Virtual Environment
 
 ```bash
-mkdir orthonode_test && cd orthonode_test
+mkdir stylus-hardware-anchor && cd stylus-hardware-anchor
 python3 -m venv venv
 source venv/bin/activate
-pip install web3 eth-account eth-hash[pycryptodome]
 ```
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/arhantbarmate/stylus-hardware-anchor .
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
+```
+
+> 💡 **Important:** Always activate the virtual environment before running scripts:
+> ```bash
+> source venv/bin/activate  # macOS/Linux
+> ```
 
 ---
 
@@ -167,30 +203,67 @@ sudo usermod -a -G dialout $USER
 #### C. Setup Python Virtual Environment
 
 ```bash
-mkdir orthonode_test && cd orthonode_test
+mkdir stylus-hardware-anchor && cd stylus-hardware-anchor
 python3 -m venv venv
 source venv/bin/activate
-pip install web3 eth-account eth-hash[pycryptodome]
 ```
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/arhantbarmate/stylus-hardware-anchor .
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
+```
+
+> 💡 **Important:** Always activate the virtual environment before running scripts:
+> ```bash
+> source venv/bin/activate  # Linux
+> ```
 
 ---
 
-## Step 3: Clone the Repository 📦
+## Step 4: Environment Configuration �
 
-Now that your environment is set up, clone the SHA repository:
+### Set Up Environment Variables
 
-### All Platforms
+Create a `.env` file with your configuration:
 
 ```bash
-git clone https://github.com/orthonode/Stylus-Hardware-Anchor
-cd Stylus-Hardware-Anchor
+cp .env.example .env
 ```
+
+Edit `.env` with your settings:
+
+```bash
+# RPC Configuration
+RPC_URL=https://arb-sepolia.g.alchemy.com/v2/YOUR_API_KEY
+
+# Contract Address (Arbitrum Sepolia)
+CONTRACT_ADDRESS=0xD661a1aB8CEFaaCd78F4B968670C3bC438415615
+
+# Your Private Key (testnet only!)
+PRIVATE_KEY=your_private_key_here
+
+# Hardware Identity (from ESP32-S3)
+HW_ID=0x52fdfc072182654f163f5f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f
+
+# Firmware Hash
+FW_HASH=0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+
+# Chain ID
+CHAIN_ID=421614
+```
+
+> ⚠️ **Security Warning:** Never commit your `.env` file to version control. Use a separate testnet wallet only.
 
 ### 📂 Repository Structure:
 
-- `ohr_firmware/` — ESP32-S3 firmware code
-- `scripts/` — Python authorization scripts
-- `contracts/` — Stylus smart contract source (Rust)
+- `stylus_anchor/` — Stylus smart contract source (Rust)
+- `scripts/` — Python authorization and benchmarking tools
+- `docs/` — Technical documentation and architecture
+- `README.md` — Project overview and quick start
+- `BENCHMARKS.md` — Gas benchmark results and methodology
 
 ---
 
@@ -434,6 +507,59 @@ You can also view the contract directly:
 
 ---
 
+## Step 7: Testing & Benchmarks 🧪
+
+### Prerequisites
+
+Ensure your virtual environment is activated:
+
+```bash
+# Windows
+venv\Scripts\activate
+
+# macOS/Linux  
+source venv/bin/activate
+```
+
+### Run Verification Benchmarks
+
+Test the contract verification functionality:
+
+```bash
+# Run benchmarks with automatic setup
+python scripts/run_gas_benchmarks.py --setup --batch-fn bitset --sizes "1,5,10,20"
+```
+
+**Expected Results:**
+- ✅ Batch verification: All tests pass (status 1)
+- ⚠️ Single verification: May show counter synchronization issues (known limitation)
+- 📊 Gas usage: ~12.5k-29.7k gas per receipt (amortized with batch size)
+
+### Test Individual Scripts
+
+Verify individual components:
+
+```bash
+# Test hardware authorization
+python scripts/authorize_hardware.py --hw-id $HW_ID
+
+# Test receipt verification
+python scripts/anchor_verifier.py
+
+# Test receipt generation
+python scripts/generate_test_receipt.py
+```
+
+### Understanding Test Results
+
+- **Batch verification**: Primary interface, works correctly
+- **Single verification**: Known counter synchronization issue under investigation  
+- **Gas benchmarks**: See `BENCHMARKS.md` for detailed results
+
+> 💡 **Note**: Always use `--setup` on first run or after contract redeployment to initialize contract state.
+
+---
+
 ## ✅ Success Checklist
 
 You have successfully completed the SHA deployment if:
@@ -455,6 +581,11 @@ You have successfully completed the SHA deployment if:
 
 - ☐ **On-Chain Verification**
   - Contract state shows your hardware as authorized
+
+- ☐ **Testing Complete**
+  - Benchmarks run successfully with `--setup` flag
+  - Batch verification tests pass (status 1)
+  - Individual scripts function correctly
 
 ### 🎉 Congratulations!
 
