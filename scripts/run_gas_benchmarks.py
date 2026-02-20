@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Tuple
 # Load environment variables from .env file
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     pass  # dotenv not available, use system env vars
@@ -91,10 +92,16 @@ def _send_and_measure(
     except SystemExit as e:
         # Check if this is an expected error
         error_msg = str(e)
-        if "AlreadyInitialized" in error_msg or "already initialized" in error_msg.lower():
+        if (
+            "AlreadyInitialized" in error_msg
+            or "already initialized" in error_msg.lower()
+        ):
             print(f"⚠️  {label} - Already initialized, skipping")
             return "skipped", 0, 1  # Treat as success for setup purposes
-        elif "UnauthorizedCaller" in error_msg or "unauthorized caller" in error_msg.lower():
+        elif (
+            "UnauthorizedCaller" in error_msg
+            or "unauthorized caller" in error_msg.lower()
+        ):
             print(f"❌ {label} - Not authorized (not contract owner)")
             return "unauthorized", 0, 0  # Treat as failure but continue
         raise
@@ -136,22 +143,42 @@ def main() -> None:
     if not args.setup:
         # Check if contract is already initialized by checking node authorization and firmware approval
         try:
-            auth_result = _run(["cast", "call", contract, "isNodeAuthorized(bytes32)", hw_hex, "--rpc-url", rpc_url])
-            fw_result = _run(["cast", "call", contract, "isFirmwareApproved(bytes32)", fw_hex, "--rpc-url", rpc_url])
+            auth_result = _run(
+                [
+                    "cast",
+                    "call",
+                    contract,
+                    "isNodeAuthorized(bytes32)",
+                    hw_hex,
+                    "--rpc-url",
+                    rpc_url,
+                ]
+            )
+            fw_result = _run(
+                [
+                    "cast",
+                    "call",
+                    contract,
+                    "isFirmwareApproved(bytes32)",
+                    fw_hex,
+                    "--rpc-url",
+                    rpc_url,
+                ]
+            )
             # If either node is not authorized or firmware is not approved, we need setup
             if "false" in auth_result.lower() or "false" in fw_result.lower():
                 setup_needed = True
         except SystemExit:
             # If call fails entirely, we need setup
             setup_needed = True
-    
+
     if args.setup or setup_needed:
         print("🔧 Setting up contract state for verification tests...")
         setup_results = []
         for fn, fn_args in [
             ("initialize()", []),
-            ("authorizeNode(bytes32)", [hw_hex]),      # was authorize_node
-            ("approveFirmware(bytes32)", [fw_hex]),     # was approve_firmware
+            ("authorizeNode(bytes32)", [hw_hex]),  # was authorize_node
+            ("approveFirmware(bytes32)", [fw_hex]),  # was approve_firmware
         ]:
             tx, gas, st = _send_and_measure(
                 fn,
@@ -169,12 +196,14 @@ def main() -> None:
                 rpc_url,
             )
             setup_results.append({"label": fn, "tx": tx, "gasUsed": gas, "status": st})
-            
+
             # If we got unauthorized error, stop trying setup functions
             if tx == "unauthorized":
-                print("🛑 Setup failed - not contract owner. Skipping remaining setup steps.")
+                print(
+                    "🛑 Setup failed - not contract owner. Skipping remaining setup steps."
+                )
                 break
-        
+
         # Only add setup results if they're not all failures
         if any(r["status"] == 1 for r in setup_results):
             results.extend(setup_results)
@@ -185,7 +214,7 @@ def main() -> None:
         packed_hex = "0x" + packed.hex()
 
         if args.batch_fn == "bitset":
-            sig = "verifyReceiptsBatchBitsetBytes(bytes)"   # was verify_receipts_batch_bitset_bytes
+            sig = "verifyReceiptsBatchBitsetBytes(bytes)"  # was verify_receipts_batch_bitset_bytes
         else:
             sig = "verifyReceiptsBatchBytes(bytes)"
 
@@ -217,18 +246,18 @@ def main() -> None:
 
     # Single success + single failure (invalid digest)
     # Read the live counter after all batch runs complete
-    counter_raw = _run([
-        "cast", "call", contract,
-        "getCounter(bytes32)", hw_hex,
-        "--rpc-url", rpc_url
-    ])
+    counter_raw = _run(
+        ["cast", "call", contract, "getCounter(bytes32)", hw_hex, "--rpc-url", rpc_url]
+    )
     current_counter = int(counter_raw, 16)
     single = make_single_args(args.chain_id, hw_id, fw_hash, current_counter)
 
     def _hex32(b: bytes) -> str:
         return "0x" + b.hex()
 
-    sig_single = "verifyReceipt(bytes32,bytes32,bytes32,uint64,bytes32)"  # was verify_receipt
+    sig_single = (
+        "verifyReceipt(bytes32,bytes32,bytes32,uint64,bytes32)"  # was verify_receipt
+    )
 
     tx, gas, st = _send_and_measure(
         "single_success",

@@ -7,6 +7,7 @@ from dataclasses import dataclass
 # Load environment variables from .env file
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     pass  # dotenv not available, use system env vars
