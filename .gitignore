@@ -71,3 +71,9 @@ bench_results.json
 *.bench
 ohr_firmware_stress_test/
 test_results/
+
+# =====================================
+# Windows Metadata Files
+# =====================================
+*Zone.Identifier
+*Zone.Identifier:*
