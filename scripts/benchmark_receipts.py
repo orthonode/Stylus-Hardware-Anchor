@@ -4,6 +4,13 @@ import argparse
 import os
 from dataclasses import dataclass
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # dotenv not available, use system env vars
+
 from eth_hash.auto import keccak
 
 DOMAIN = b"anchor_RCT_V1"
