@@ -1,5 +1,6 @@
 # Stylus Hardware Anchor (SHA)
 
+![CI](https://github.com/arhantbarmate/stylus-hardware-anchor/workflows/CI/badge.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Arbitrum](https://img.shields.io/badge/Arbitrum-Stylus-blue.svg)
 ![Rust](https://img.shields.io/badge/Rust-WASM-orange.svg)
