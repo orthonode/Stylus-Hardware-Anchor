@@ -10,25 +10,27 @@ This roadmap reflects **Phase 1 only**.
 
 # Phase 1 — Current Grant Scope
 
-**Total Grant Request:** $49,000 USD  
+**Total Grant Request:** $25,000 USD  
 **Duration:** 6 months  
 **Network Scope:** Arbitrum Sepolia (testnet only)  
-**Milestones:** 2  
+**Milestones:** 1  
 
 Phase 1 focuses strictly on:
 
 - Security hardening of the existing Sepolia prototype  
 - Reproducible validation artifacts  
-- Developer SDK and integration tooling  
-- Testnet deployment support  
+- Threat model and security documentation  
+- Tagged developer-ready open-source release  
+
+Developer SDK, package registry publishing, and integration tooling are deferred to Phase 2 under a separate grant.  
 
 No professional third-party audit, mainnet deployment, or ecosystem expansion is included in this scope.
 
 ---
 
-# Milestone 1 — Security Hardening (Months 1–3)
+# Milestone 1 — Security Hardening & Developer Release (Months 1–6)
 
-**Allocation:** $24,000 USD  
+**Allocation:** $25,000 USD  
 **Scope:** Testnet-only (Arbitrum Sepolia)
 
 ## Objective
@@ -88,89 +90,22 @@ No paid external consulting or professional third-party audit is included in thi
 
 | Category | Cost (USD) |
 |-----------|------------|
-| Internal Development & Security Hardening | $20,000 |
+| Internal Development & Security Hardening | $21,000 |
 | Minimal Hardware (3–5 ESP32-S3 boards for validation testing) | $1,000 |
-| Contingency (technical remediation buffer) | $3,000 |
-| **Total Milestone 1** | **$24,000** |
+| Documentation & Developer Release Preparation | $2,000 |
+| Contingency (technical remediation buffer) | $1,000 |
+| **Total Milestone 1** | **$25,000** |
 
 **Note:**  
 No professional third-party audit, paid external review, consulting services, or audit subsidy applications are included in Phase 1.
 
 ---
 
-# Milestone 2 — Developer SDK & Integration Tooling (Months 4–6)
-
-**Allocation:** $25,000 USD  
-**Scope:** Testnet-only (Arbitrum Sepolia)
-
-## Objective
-
-Deliver integration-ready developer tooling enabling reproducible hardware-to-contract flows on testnet.
-
----
-
-## Deliverables
-
-### 1. Python SDK (`anchor-verifier`)
-
-- Published to PyPI  
-- Async interface with configurable RPC  
-- Authorization flow examples  
-- Quickstart documentation  
-
----
-
-### 2. Rust Crate (`stylus-hardware-primitives`)
-
-- Published to crates.io  
-- Modular traits:
-  - Identity gating  
-  - Replay protection  
-  - Firmware governance  
-- Integration examples  
-
----
-
-### 3. Reference Integration Templates (3)
-
-Deployable on Sepolia:
-
-- DePIN sensor verification  
-- Hardware-bound access control  
-- Firmware governance enforcement  
-
-Each template will include step-by-step deployment instructions.
-
----
-
-### 4. Minimal Developer Dashboard
-
-- Verification event visibility  
-- Gas analytics display  
-- Load testing with ≥100 simulated devices  
-- Documented results  
-
----
-
-## Milestone 2 Budget Breakdown
-
-| Category | Cost (USD) |
-|-----------|------------|
-| Internal SDK & Tooling Development | $23,000 |
-| Documentation & Technical Writing | $2,000 |
-| **Total Milestone 2** | **$25,000** |
-
-**Note:**  
-No external consulting, professional audit, or paid third-party services are included in Phase 1.
-
----
-
 # Phase 1 Summary
 
-- Milestone 1: $24,000 USD  
-- Milestone 2: $25,000 USD  
+- Milestone 1: $25,000 USD  
 
-**Total Phase 1 Grant Request: $49,000 USD**  
+**Total Phase 1 Grant Request: $25,000 USD**  
 **Duration: 6 months (testnet-only)**
 
 ---
@@ -179,13 +114,11 @@ No external consulting, professional audit, or paid third-party services are inc
 
 Phase 1 will be considered complete when:
 
-- Hardened contract version publicly tagged  
-- ≥1,000,000 fuzzing executions completed  
-- ≥10,000 cryptographic test vectors published  
-- Gas benchmarks reproducible by third parties  
-- Python SDK published to PyPI  
-- Rust crate published to crates.io  
-- 3+ reference integrations deployable on Sepolia  
+- Hardened contract version publicly tagged with deterministic build instructions  
+- ≥1,000,000 fuzzing executions completed and logs published  
+- ≥10,000 cryptographic parity test vectors published and reproducible  
+- Gas benchmarks documented across defined input ranges and independently executable  
+- Threat model and security documentation publicly released  
 
 All deliverables will be publicly verifiable through GitHub releases, package registries, and on-chain testnet deployments.
 
@@ -229,13 +162,16 @@ Mitigation:
 
 Planned future scope (subject to separate grant approval):
 
+- Python SDK (`anchor-verifier`) published to PyPI  
+- Rust crate (`stylus-hardware-primitives`) published to crates.io  
+- Reference integration templates deployable on Sepolia  
 - Professional third-party security audit  
 - Mainnet deployment  
-- Hardware reference design  
-- Expanded ecosystem integrations  
+- Hardware expansion to ARM Cortex-M and RISC-V targets  
+- Ecosystem integrations with Orbit-based DePIN networks  
 - Governance exploration (subject to community approval)  
 
-No Phase 2 budget is included in the current $49,000 USD request.
+No Phase 2 budget is included in the current $25,000 USD request.
 
 ---
 

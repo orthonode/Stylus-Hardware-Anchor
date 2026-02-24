@@ -225,10 +225,10 @@ stylus-hardware-anchor/
 ## Next Steps
 ```mermaid
 timeline
-    title anchor Roadmap
-    Milestone 1 : Pending approval : Identity Binding
-    Milestone 2 : ACTIVE : Firmware Attestation
-    Milestone 3 : PLANNED : Multi-Node Orchestration
+    title SHA Roadmap
+    Phase 1 - Milestone 1 : Under Review : Security Hardening & Developer Release
+    Phase 2 : Future Grant : SDK, Audit, Mainnet Deployment
+    Phase 3 : Future : Ecosystem Integration
 ```
 
 ---------------------------------------------------------------------

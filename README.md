@@ -202,26 +202,25 @@ See [`DEBUGGING_POSTMORTEM.md`](docs/DEBUGGING_POSTMORTEM.md) and [`TECHNICAL_CH
 
 ## Roadmap
 
-### Phase 1 — Current Scope ($49,000 — Under Review)
-*Arbitrum Sepolia testnet only — 6 months*
+### Phase 1 — Current Grant Scope ($25,000 — Under Review)
+*Arbitrum Sepolia testnet only — 6 months — Single milestone*
 
-**Milestone 1 — Security Hardening ($24,000)**
-- Coverage-guided fuzz testing (≥1M execution cycles via `cargo-fuzz`)
-- Input size enforcement and DoS mitigation
+**Milestone 1 — Security Hardening & Developer Release ($25,000)**
+- Hardened Stylus verification contract with full input validation and edge-case handling
+- Coverage-guided fuzz validation (≥1,000,000 execution cycles via `cargo-fuzz`)
+- Cryptographic parity validation suite (≥10,000 device ↔ contract Keccak-256 test vectors)
+- Reproducible gas benchmark scripts with public performance documentation
 - Threat model and attack surface documentation
-- Reproducible benchmark scripts
-
-**Milestone 2 — Developer SDK ($25,000)**
-- Python SDK (`anchor-verifier`) published to PyPI
-- Rust crate (`stylus-hardware-primitives`) published to crates.io
-- 3 reference integration templates deployable on Sepolia
-- Minimal developer dashboard with gas analytics
+- Tagged developer-ready GitHub release with deterministic build instructions
 
 ### Phase 2 — Future Scope (Separate Grant)
+- Python SDK (`anchor-verifier`) published to PyPI
+- Rust crate (`stylus-hardware-primitives`) published to crates.io
+- Reference integration templates deployable on Sepolia
 - Professional third-party security audit
 - Mainnet deployment
-- Hardware reference design
-- Ecosystem integrations (DePIN networks on Arbitrum)
+- Hardware expansion to ARM Cortex-M and RISC-V targets
+- Ecosystem integrations with Orbit-based DePIN networks
 
 ---
 
@@ -242,8 +241,7 @@ See [`DEBUGGING_POSTMORTEM.md`](docs/DEBUGGING_POSTMORTEM.md) and [`TECHNICAL_CH
 
 ## Grant Status
 
-- Arbitrum Foundation Stylus Sprint grant: $49,000 — **under review**
-- vlayer ecosystem grant: $10,000 — **under review**
+- Arbitrum Foundation Ecosystem Support Program grant: $25,000 — **under review**
 - No funding received to date. Pre-revenue infrastructure project.
 
 ---
