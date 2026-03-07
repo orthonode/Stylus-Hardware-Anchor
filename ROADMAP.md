@@ -10,7 +10,7 @@ This roadmap reflects **Phase 1 only**.
 
 # Phase 1 — Current Grant Scope
 
-**Total Grant Request:** $49,000 USD  
+**Total Grant Request:** $25,000 USD  
 **Duration:** 6 months  
 **Network Scope:** Arbitrum Sepolia (testnet only)  
 **Milestones:** 2  
@@ -170,7 +170,7 @@ No external consulting, professional audit, or paid third-party services are inc
 - Milestone 1: $24,000 USD  
 - Milestone 2: $25,000 USD  
 
-**Total Phase 1 Grant Request: $49,000 USD**  
+**Total Phase 1 Grant Request: $25,000 USD**  
 **Duration: 6 months (testnet-only)**
 
 ---
@@ -235,7 +235,7 @@ Planned future scope (subject to separate grant approval):
 - Expanded ecosystem integrations  
 - Governance exploration (subject to community approval)  
 
-No Phase 2 budget is included in the current $49,000 USD request.
+No Phase 2 budget is included in the current $25,000 USD request.
 
 ---
 
