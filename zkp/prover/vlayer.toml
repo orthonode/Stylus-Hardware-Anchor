@@ -1,0 +1,35 @@
+# vlayer Prover Configuration — SHA × vlayer Integration
+# SHA v2 | Arbitrum Sepolia
+# Phase 2: set contract addresses after deployment
+
+[prover]
+# Local: http://localhost:3000
+# Testnet: override via VLAYER_PROVER_URL env var
+url = "http://localhost:3000"
+timeout_secs = 120
+
+[circuit]
+# Noir circuit — Phase 2 target (not yet compiled)
+path = "../circuits/execution_proof.nr"
+# Proof system backend used by vlayer
+backend = "groth16"
+
+[network]
+chain_id = 421614  # Arbitrum Sepolia
+rpc_url = "https://sepolia-rollup.arbitrum.io/rpc"
+
+[contract]
+# SHA v2 address — set after Phase 2 deployment
+sha_v2_address = ""
+# vlayer-deployed verifier address — set after Phase 2 deployment
+zk_verifier_address = ""
+
+[limits]
+max_proof_size_bytes = 4096
+max_exec_data_bytes = 128
+max_batch_size = 50
+
+[audit]
+# When true, invalid proofs emit ZkProofAuditFailed but do not revert.
+# Must be false (enforcement mode) before any production use.
+audit_mode = true

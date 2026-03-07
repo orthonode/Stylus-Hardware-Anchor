@@ -35,10 +35,12 @@ from pathlib import Path
 # Configuration — set via environment or .env
 # ---------------------------------------------------------------------------
 
-RPC_URL          = os.getenv("RPC_URL", "https://sepolia-rollup.arbitrum.io/rpc")
-CONTRACT_ADDRESS = os.getenv("CONTRACT_ADDRESS", "")   # SHA v2 address (Phase 2 deploy)
-PRIVATE_KEY      = os.getenv("PRIVATE_KEY", "")        # no 0x prefix
-VLAYER_CIRCUIT   = Path(__file__).parent.parent / "circuits" / "execution_proof.nr"
+RPC_URL            = os.getenv("RPC_URL", "https://sepolia-rollup.arbitrum.io/rpc")
+CONTRACT_ADDRESS   = os.getenv("CONTRACT_ADDRESS", "")   # SHA v2 address (Phase 2 deploy)
+PRIVATE_KEY        = os.getenv("PRIVATE_KEY", "")        # no 0x prefix
+VLAYER_PROVER_URL  = os.getenv("VLAYER_PROVER_URL", "http://localhost:3000")
+VLAYER_CHAIN_ID    = int(os.getenv("VLAYER_CHAIN_ID", "421614"))  # Arbitrum Sepolia
+VLAYER_CIRCUIT     = Path(__file__).parent.parent / "circuits" / "execution_proof.nr"
 
 # Phase 1 ABI stub — will be replaced with generated ABI in Phase 2
 SHA_V2_ABI_STUB = [
@@ -78,31 +80,76 @@ SHA_V2_ABI_STUB = [
 def compute_exec_hash(exec_data: dict) -> bytes:
     """
     Compute execution_hash from device execution output.
-    Phase 2: implement deterministic hash over exec_data fields.
-    Must match the circuit's public input computation exactly.
+
+    exec_data must contain a "raw_output" field: hex-encoded bytes of the
+    device's raw computation result. Keccak-256(raw_output) is the public
+    input that the vlayer circuit commits to.
+
+    The exec_hash embedded in the receipt must equal this value exactly.
+    The ESP32 firmware computes the same hash before building the receipt.
     """
-    raise NotImplementedError("Phase 2: implement exec_hash derivation")
+    raw_hex = exec_data.get("raw_output", "")
+    if not raw_hex:
+        raise ValueError("exec_data must contain 'raw_output' (hex bytes of device output)")
+    raw = bytes.fromhex(raw_hex.removeprefix("0x"))
+    return keccak256(raw)
 
 
 def generate_zk_proof(exec_data: dict, exec_hash: bytes, fw_hash: bytes) -> bytes:
     """
-    Call vlayer prover CLI to generate a ZK proof.
+    Call the vlayer prover to generate a ZK proof via JSON-RPC.
 
-    Phase 2 implementation:
-        result = subprocess.run([
-            "vlayer", "prove",
-            "--circuit", str(VLAYER_CIRCUIT),
-            "--input", json.dumps({
-                "exec_data": exec_data,
-                "exec_hash": exec_hash.hex(),
-                "fw_hash":   fw_hash.hex(),
-            }),
-        ], capture_output=True, text=True, check=True)
-        return bytes.fromhex(json.loads(result.stdout)["proof"])
+    Sends a v_call to the vlayer prover service. The circuit proves:
+        keccak256(exec_data["raw_output"]) == exec_hash
+    exec_data is the private witness; exec_hash is the public input.
+
+    Requires:
+      - vlayer prover running at VLAYER_PROVER_URL (default: localhost:3000)
+      - Compiled circuit artifact at VLAYER_CIRCUIT (Phase 2 deliverable)
+      - VLAYER_PROVER_URL env var (override for testnet prover)
 
     Returns serialized proof bytes (Groth16/PLONK per vlayer backend).
     """
-    raise NotImplementedError("Phase 2: implement vlayer prover call")
+    import urllib.request
+
+    witness = {
+        "circuit": str(VLAYER_CIRCUIT),
+        "chainId": VLAYER_CHAIN_ID,
+        "publicInputs": {
+            "exec_hash": "0x" + exec_hash.hex(),
+        },
+        "privateInputs": {
+            "exec_data": exec_data.get("raw_output", "0x"),
+        },
+    }
+
+    payload = json.dumps({
+        "jsonrpc": "2.0",
+        "method": "v_call",
+        "params": [witness],
+        "id": 1,
+    }).encode()
+
+    req = urllib.request.Request(
+        VLAYER_PROVER_URL,
+        data=payload,
+        headers={"Content-Type": "application/json"},
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            result = json.load(resp)
+    except Exception as e:
+        raise RuntimeError(
+            f"vlayer prover unreachable at {VLAYER_PROVER_URL}: {e}\n"
+            f"Start local prover: vlayer server --circuit {VLAYER_CIRCUIT}"
+        ) from e
+
+    if "error" in result:
+        raise RuntimeError(f"vlayer prover returned error: {result['error']}")
+
+    proof_hex = result["result"]["proof"]
+    return bytes.fromhex(proof_hex.removeprefix("0x"))
 
 
 def build_receipt_material(hw_id: bytes, fw_hash: bytes, exec_hash: bytes, counter: int) -> bytes:
@@ -143,31 +190,54 @@ def submit_zk_receipt(
     zk_proof: bytes,
 ) -> str:
     """
-    Submit verify_receipt_with_zk() to SHA v2 on Sepolia.
-    Returns transaction hash.
+    Submit verify_receipt_with_zk() to SHA v2 on Arbitrum Sepolia.
+    Returns transaction hash (hex string with 0x prefix).
 
-    Phase 2 implementation:
-        from web3 import Web3
-        from eth_account import Account
-
-        w3 = Web3(Web3.HTTPProvider(RPC_URL))
-        account = Account.from_key(PRIVATE_KEY)
-        contract = w3.eth.contract(
-            address=Web3.to_checksum_address(CONTRACT_ADDRESS),
-            abi=SHA_V2_ABI_STUB
-        )
-        tx = contract.functions.verifyReceiptWithZk(
-            hw_id, fw_hash, exec_hash, counter, claimed_digest, zk_proof
-        ).build_transaction({
-            "from":  account.address,
-            "nonce": w3.eth.get_transaction_count(account.address),
-            "gas":   300_000,
-        })
-        signed = account.sign_transaction(tx)
-        tx_hash = w3.eth.send_raw_transaction(signed.rawTransaction)
-        return tx_hash.hex()
+    Requires:
+      - RPC_URL env var (default: Arbitrum Sepolia RPC)
+      - CONTRACT_ADDRESS env var (SHA v2 deployed address — Phase 2)
+      - PRIVATE_KEY env var (submitter key, no 0x prefix)
     """
-    raise NotImplementedError("Phase 2: implement on-chain submission")
+    from web3 import Web3
+    from eth_account import Account
+
+    if not CONTRACT_ADDRESS:
+        raise ValueError("CONTRACT_ADDRESS not set — SHA v2 not yet deployed (Phase 2)")
+    if not PRIVATE_KEY:
+        raise ValueError("PRIVATE_KEY not set")
+
+    w3 = Web3(Web3.HTTPProvider(RPC_URL))
+    if not w3.is_connected():
+        raise RuntimeError(f"Cannot connect to RPC: {RPC_URL}")
+
+    account = Account.from_key(PRIVATE_KEY)
+    contract = w3.eth.contract(
+        address=Web3.to_checksum_address(CONTRACT_ADDRESS),
+        abi=SHA_V2_ABI_STUB,
+    )
+
+    tx = contract.functions.verifyReceiptWithZk(
+        hw_id,
+        fw_hash,
+        exec_hash,
+        counter,
+        claimed_digest,
+        zk_proof,
+    ).build_transaction({
+        "from":  account.address,
+        "nonce": w3.eth.get_transaction_count(account.address),
+        "gas":   350_000,
+        "chainId": 421614,  # Arbitrum Sepolia
+    })
+
+    signed = account.sign_transaction(tx)
+    tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
+    receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
+
+    if receipt.status != 1:
+        raise RuntimeError(f"Transaction reverted: {tx_hash.hex()}")
+
+    return "0x" + tx_hash.hex()
 
 
 # ---------------------------------------------------------------------------
