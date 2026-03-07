@@ -107,7 +107,7 @@ pip install -r requirements-dev.txt
 ## 🛣️ Roadmap
 
 ### Phase 1 — Current Grant Scope  
-**$49,000 USD — 6 months — Testnet Only (Arbitrum Sepolia)**
+**$25,000 USD — 6 months — Testnet Only (Arbitrum Sepolia)**
 
 - Milestone 1: Security Hardening  
 - Milestone 2: Developer SDK & Integration Tooling  
