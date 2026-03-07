@@ -1,0 +1,72 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    name: Lint and Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+          targets: wasm32-unknown-unknown
+
+      - name: Check formatting
+        run: cargo fmt --check
+
+      - name: Clippy (deny warnings)
+        run: cargo clippy -- -D warnings
+
+      - name: Run tests
+        run: cargo test
+
+  python-tests:
+    name: Python Middleware Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run pytest
+        run: python -m pytest
+
+  security-check:
+    name: Security Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for hardcoded secrets
+        run: |
+          if grep -r "private_key\s*=\s*['\"]0x" --include="*.py" --include="*.rs" .; then
+            echo "ERROR: Hardcoded private key detected"
+            exit 1
+          fi
+
+      - name: Verify grant amount correctness
+        run: |
+          if grep -r "49,000" --include="*.md" --include="*.html" .; then
+            echo "ERROR: Incorrect grant amount \$49,000 found — must be \$25,000"
+            exit 1
+          fi
+
+      - name: Verify contract address
+        run: |
+          if ! grep -r "0xD661a1aB8CEFaaCd78F4B968670C3bC438415615\|0xd661a1ab8cefaacd78f4b968670c3bc438415615" README.md; then
+            echo "WARNING: Contract address not found in README.md"
+          fi
